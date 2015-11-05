@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/D:/Android_studio_1.4/sourcejava/Photo_Matrix/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.1.0/res/values-w500dp/values-w500dp.xml -->
+    <eat-comment/>
+    <integer name="abc_max_action_buttons">4</integer>
+</resources>
