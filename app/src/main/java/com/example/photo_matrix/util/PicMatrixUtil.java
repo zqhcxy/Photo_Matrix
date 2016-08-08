@@ -1,8 +1,15 @@
 package com.example.photo_matrix.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.os.Build;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.photo_matrix.softglowfilter.BrightContrastFilter;
@@ -16,6 +23,41 @@ import com.example.photo_matrix.softglowfilter.ImageData;
  * 
  */
 public class PicMatrixUtil {
+    private static final float BITMAP_SCALE = 0.4f;//0.4f(越低越模糊)
+    private static final float BLUR_RADIUS = 7.5f;//7.5f
+
+    public static Bitmap blur(Context context, Bitmap image) {
+       return blur(context,image,BITMAP_SCALE,BLUR_RADIUS);
+    }
+    /**
+     * 模糊效果（API 17以上在可以使用）
+     * @param context
+     * @param image
+     * @return
+     */
+    @Nullable
+    public static Bitmap blur(Context context, Bitmap image,float scale,float radius) {
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {//api大于21就执行
+            return null;
+        }
+        int width = Math.round(image.getWidth() * scale);
+        int height = Math.round(image.getHeight() *scale);
+
+        Bitmap inputBitmap = Bitmap.createScaledBitmap(image, width, height, false);
+        Bitmap outputBitmap = Bitmap.createBitmap(inputBitmap);
+
+        RenderScript rs = RenderScript.create(context);
+        ScriptIntrinsicBlur theIntrinsic = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+        Allocation tmpIn = Allocation.createFromBitmap(rs, inputBitmap);
+        Allocation tmpOut = Allocation.createFromBitmap(rs, outputBitmap);
+        theIntrinsic.setRadius(radius);
+        theIntrinsic.setInput(tmpIn);
+        theIntrinsic.forEach(tmpOut);
+        tmpOut.copyTo(outputBitmap);
+
+        return outputBitmap;
+    }
 
 	/**
 	 * 怀旧效果
@@ -146,7 +188,7 @@ public class PicMatrixUtil {
 	/**
 	 * 底片效果
 	 * 
-	 * @param bitmap
+	 * @param bmp
 	 * @return
 	 */
 	public static Bitmap negativeImageAmeliorate(Bitmap bmp) {
@@ -398,7 +440,7 @@ public class PicMatrixUtil {
 	/**
 	 * 将彩色图转换为黑白图
 	 * 
-	 * @param 位图
+	 * @param bmp 位图
 	 * @return 返回转换好的位图
 	 */
 	public static Bitmap blackWhite(Bitmap bmp) {
